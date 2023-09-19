@@ -1,5 +1,5 @@
 dnl Boilerplate
-AC_INIT([ipset], [7.17], [kadlec@netfilter.org])
+AC_INIT([ipset], [7.18], [kadlec@netfilter.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
@@ -749,6 +749,16 @@ if test -f $ksourcedir/include/linux/timer.h && \
    $GREP -q ' strscpy' $ksourcedir/include/linux/string.h; then
 	AC_MSG_RESULT(yes)
 	AC_SUBST(HAVE_STRSCPY, define)
+else
+	AC_MSG_RESULT(no)
+	AC_SUBST(HAVE_STRSCPY, undef)
+fi
+
+AC_MSG_CHECKING([kernel source for strscpy_pad() in string.h])
+if test -f $ksourcedir/include/linux/timer.h && \
+   $GREP -q ' strscpy_pad' $ksourcedir/include/linux/string.h; then
+	AC_MSG_RESULT(yes)
+	AC_SUBST(HAVE_STRSCPY_PAD, define)
 else
 	AC_MSG_RESULT(no)
 	AC_SUBST(HAVE_STRSCPY, undef)
