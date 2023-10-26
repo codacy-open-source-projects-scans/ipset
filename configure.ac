@@ -1,5 +1,5 @@
 dnl Boilerplate
-AC_INIT([ipset], [7.18], [kadlec@netfilter.org])
+AC_INIT([ipset], [7.19], [kadlec@netfilter.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
@@ -14,6 +14,7 @@ LT_CONFIG_LTDL_DIR([libltdl])
 LTDL_INIT([nonrecursive])
 
 PKG_PROG_PKG_CONFIG
+PKG_INSTALLDIR
 
 dnl Shortcut: Linux supported alone
 case "$host" in
