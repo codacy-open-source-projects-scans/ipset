@@ -1306,6 +1306,7 @@ callback_list(struct ipset_session *session, struct nlattr *nla[],
 	      enum ipset_cmd cmd)
 {
 	struct ipset_data *data = session->data;
+	static bool firstipset = true;
 
 	if (setjmp(printf_failure)) {
 		session->saved_setname[0] = '\0';
@@ -1324,10 +1325,13 @@ callback_list(struct ipset_session *session, struct nlattr *nla[],
 		if (session->mode == IPSET_LIST_XML)
 			safe_snprintf(session, "<ipset name=\"%s\"/>\n",
 				      ipset_data_setname(data));
-		if (session->mode == IPSET_LIST_JSON)
-			safe_snprintf(session, "\"name\" : \"%s\"\n",
+		else if (session->mode == IPSET_LIST_JSON) {
+			if (!firstipset)
+				safe_snprintf(session, ",\n");
+			firstipset = false;
+			safe_snprintf(session, "  { \"name\" : \"%s\" }",
 				      ipset_data_setname(data));
-		else
+		} else
 			safe_snprintf(session, "%s\n",
 				      ipset_data_setname(data));
 		return call_outfn(session) ? MNL_CB_ERROR : MNL_CB_OK;
@@ -2277,23 +2281,26 @@ ipset_cmd(struct ipset_session *session, enum ipset_cmd cmd, uint32_t lineno)
 	session->cmd = cmd;
 	session->lineno = lineno;
 
-	/* Set default output mode */
-	if (cmd == IPSET_CMD_LIST) {
+	if (cmd == IPSET_CMD_LIST || cmd == IPSET_CMD_SAVE) {
+		/* Set default output mode */
 		if (session->mode == IPSET_LIST_NONE)
 			session->mode = IPSET_LIST_PLAIN;
-	} else if (cmd == IPSET_CMD_SAVE) {
-		if (session->mode == IPSET_LIST_NONE)
-			session->mode = IPSET_LIST_SAVE;
+		/* Reset just in case there are multiple modes in a session */
+		ipset_envopt_unset(session, IPSET_ENV_QUOTED);
+		switch (session->mode) {
+		case IPSET_LIST_XML:
+			/* Start the root element in XML mode */
+			safe_snprintf(session, "<ipsets>\n");
+			break;
+		case IPSET_LIST_JSON:
+			/* Start the root element in json mode */
+			ipset_envopt_set(session, IPSET_ENV_QUOTED);
+			safe_snprintf(session, "[\n");
+			break;
+		default:
+			break;
+		}
 	}
-	/* Start the root element in XML mode */
-	if ((cmd == IPSET_CMD_LIST || cmd == IPSET_CMD_SAVE) &&
-	    session->mode == IPSET_LIST_XML)
-		safe_snprintf(session, "<ipsets>\n");
-
-	/* Start the root element in json mode */
-	if ((cmd == IPSET_CMD_LIST || cmd == IPSET_CMD_SAVE) &&
-	    session->mode == IPSET_LIST_JSON)
-		safe_snprintf(session, "[\n");
 
 	D("next: build_msg");
 	/* Build new message or append buffered commands */
