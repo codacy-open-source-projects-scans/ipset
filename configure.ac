@@ -1,5 +1,5 @@
 dnl Boilerplate
-AC_INIT([ipset], [7.19], [kadlec@netfilter.org])
+AC_INIT([ipset], [7.20], [kadlec@netfilter.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
@@ -723,6 +723,16 @@ if test -f $ksourcedir/include/linux/timer.h && \
 else
 	AC_MSG_RESULT(no)
 	AC_SUBST(HAVE_TIMER_SETUP, undef)
+fi
+
+AC_MSG_CHECKING([kernel source for timer_shutdown_sync() in timer.h])
+if test -f $ksourcedir/include/linux/timer.h && \
+   $GREP -q ' timer_shutdown_sync' $ksourcedir/include/linux/timer.h; then
+	AC_MSG_RESULT(yes)
+	AC_SUBST(HAVE_TIMER_SHUTDOWN_SYNC, define)
+else
+	AC_MSG_RESULT(no)
+	AC_SUBST(HAVE_TIMER_SHUTDOWN_SYNC, undef)
 fi
 
 AC_MSG_CHECKING([kernel source for lockdep_nfnl_is_held() in nfnetlink.h])
