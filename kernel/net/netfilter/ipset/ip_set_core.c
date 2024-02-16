@@ -30,7 +30,6 @@ static DEFINE_RWLOCK(ip_set_ref_lock);		/* protects the set refs */
 struct ip_set_net {
 	struct ip_set * __rcu *ip_set_list;	/* all individual sets */
 	ip_set_id_t	ip_set_max;	/* max number of sets */
-	bool		is_deleted;	/* deleted by ip_set_net_exit */
 	bool		is_destroyed;	/* all sets are destroyed */
 };
 
@@ -926,11 +925,9 @@ ip_set_nfnl_put(struct net *net, ip_set_id_t index)
 	struct ip_set_net *inst = ip_set_pernet(net);
 
 	nfnl_lock(NFNL_SUBSYS_IPSET);
-	if (!inst->is_deleted) { /* already deleted from ip_set_net_exit() */
-		set = ip_set(inst, index);
-		if (set)
-			__ip_set_put(set);
-	}
+	set = ip_set(inst, index);
+	if (set)
+		__ip_set_put(set);
 	nfnl_unlock(NFNL_SUBSYS_IPSET);
 }
 EXPORT_SYMBOL_GPL(ip_set_nfnl_put);
@@ -1164,6 +1161,7 @@ IPSET_CBFN(ip_set_create, struct net *n, struct sock *ctnl,
 	return ret;
 
 cleanup:
+	set->variant->cancel_gc(set);
 	set->variant->destroy(set);
 put_out:
 	module_put(set->type->me);
@@ -1181,23 +1179,48 @@ ip_set_setname_policy[IPSET_ATTR_CMD_MAX + 1] = {
 				    .len = IPSET_MAXNAMELEN - 1 },
 };
 
-static void
-ip_set_destroy_set(struct ip_set *set)
-{
-	pr_debug("set: %s\n",  set->name);
+/* Destroying a set is split into two stages when a DESTROY command issued:
+ * - Cancel garbage collectors and decrement the module reference counter:
+ *	- Cancelling may wait and we are allowed to do it at this stage.
+ *	- Module remove is protected by rcu_barrier() which waits for
+ *	  the second stage to be finished.
+ * - In order to prevent the race between kernel side add/del/test element
+ *   operations and destroy, the destroying of the set data areas are
+ *   performed via a call_rcu() call.
+ */
 
+/* Call set variant specific destroy function and reclaim the set data. */
+static void
+ip_set_destroy_set_variant(struct ip_set *set)
+{
 	/* Must call it without holding any lock */
 	set->variant->destroy(set);
-	module_put(set->type->me);
 	kfree(set);
 }
 
 static void
-ip_set_destroy_set_rcu(struct rcu_head *head)
+ip_set_destroy_set_variant_rcu(struct rcu_head *head)
 {
 	struct ip_set *set = container_of(head, struct ip_set, rcu);
 
-	ip_set_destroy_set(set);
+	ip_set_destroy_set_variant(set);
+}
+
+/* Cancel the garbage collectors and decrement module references */
+static void
+ip_set_destroy_cancel_gc(struct ip_set *set)
+{
+	set->variant->cancel_gc(set);
+	module_put(set->type->me);
+}
+
+/* Use when we may wait for the complete destroy to be finished.
+ */
+static void
+ip_set_destroy_set(struct ip_set *set)
+{
+	ip_set_destroy_cancel_gc(set);
+	ip_set_destroy_set_variant(set);
 }
 
 static int
@@ -1242,8 +1265,6 @@ IPSET_CBFN(ip_set_destroy, struct net *net, struct sock *ctnl,
 			s = ip_set(inst, i);
 			if (s) {
 				ip_set(inst, i) = NULL;
-				/* Must cancel garbage collectors */
-				s->variant->cancel_gc(s);
 				ip_set_destroy_set(s);
 			}
 		}
@@ -1272,8 +1293,8 @@ IPSET_CBFN(ip_set_destroy, struct net *net, struct sock *ctnl,
 			rcu_barrier();
 		}
 		/* Must cancel garbage collectors */
-		s->variant->cancel_gc(s);
-		call_rcu(&s->rcu, ip_set_destroy_set_rcu);
+		ip_set_destroy_cancel_gc(s);
+		call_rcu(&s->rcu, ip_set_destroy_set_variant_rcu);
 	}
 	return 0;
 out:
@@ -2460,7 +2481,6 @@ ip_set_net_init(struct net *net)
 #else
 		goto err_alloc;
 #endif
-	inst->is_deleted = false;
 	inst->is_destroyed = false;
 	rcu_assign_pointer(inst->ip_set_list, list);
 	return 0;
@@ -2477,20 +2497,6 @@ ip_set_net_exit(struct net *net)
 {
 	struct ip_set_net *inst = ip_set_pernet(net);
 
-	struct ip_set *set = NULL;
-	ip_set_id_t i;
-
-	inst->is_deleted = true; /* flag for ip_set_nfnl_put */
-
-	nfnl_lock(NFNL_SUBSYS_IPSET);
-	for (i = 0; i < inst->ip_set_max; i++) {
-		set = ip_set(inst, i);
-		if (set) {
-			ip_set(inst, i) = NULL;
-			ip_set_destroy_set(set);
-		}
-	}
-	nfnl_unlock(NFNL_SUBSYS_IPSET);
 	kvfree(rcu_dereference_protected(inst->ip_set_list, 1));
 #ifndef HAVE_NET_OPS_ID
 	kvfree(inst);
@@ -2556,9 +2562,6 @@ ip_set_fini(void)
 	nf_unregister_sockopt(&so_set);
 	nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
 	UNREGISTER_PERNET_SUBSYS(&ip_set_net_ops);
-
-	/* Wait for call_rcu() in destroy */
-	rcu_barrier();
 
 	pr_debug("these are the famous last words\n");
 }
