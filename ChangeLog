@@ -1,3 +1,9 @@
+7.22
+  - ipset: fix json output format for IPSET_OPT_IP (Z. Liu)
+  - tests: add namespace test and take into account delayed
+    set removal at module remove
+  - Update autoconfig tools to build cleanly on Debian bookworm
+
 7.21
   - The patch "Fix hex literals in json output" broke save mode, restore it
   - Fix -Werror=format-extra-args warning

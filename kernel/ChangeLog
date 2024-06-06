@@ -1,3 +1,12 @@
+7.22
+  - netfilter: ipset: Fix race between namespace cleanup and gc
+    in the list:set type
+  - netfilter: ipset: Add list flush to cancel_gc (Alexander Maltsev)
+  - Kill sched.h dependency on rcupdate.h (Kent Overstreet)
+  - Handle "netfilter: propagate net to nf_bridge_get_physindev" patch
+  - netfilter: propagate net to nf_bridge_get_physindev (Pavel Tikhomirov)
+  - Revert "netfilter: ipset: remove set destroy at ip_set module removal"
+
 7.21
   - netfilter: ipset: Suppress false sparse warnings
   - tests: Verify module unload when sets with timeout were just destroyed

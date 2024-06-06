@@ -261,6 +261,7 @@ ipset_print_ip(char *buf, unsigned int len,
 	uint8_t family, cidr;
 	int flags, size, offset = 0;
 	enum ipset_opt cidropt;
+	const char *quoted = env & IPSET_ENV_QUOTED ? "\"" : "";
 
 	assert(buf);
 	assert(len > 0);
@@ -277,20 +278,26 @@ ipset_print_ip(char *buf, unsigned int len,
 		cidr = family == NFPROTO_IPV6 ? 128 : 32;
 	flags = (env & IPSET_ENV_RESOLVE) ? 0 : NI_NUMERICHOST;
 
+	size = snprintf(buf, len, "%s", quoted);
+	SNPRINTF_FAILURE(size, len, offset);
+
 	ip = ipset_data_get(data, opt);
 	assert(ip);
 	if (family == NFPROTO_IPV4)
-		size = snprintf_ipv4(buf, len, flags, ip, cidr);
+		size = snprintf_ipv4(buf + offset, len, flags, ip, cidr);
 	else if (family == NFPROTO_IPV6)
-		size = snprintf_ipv6(buf, len, flags, ip, cidr);
+		size = snprintf_ipv6(buf + offset, len, flags, ip, cidr);
 	else
 		return -1;
 	D("size %i, len %u", size, len);
 	SNPRINTF_FAILURE(size, len, offset);
 
 	D("len: %u, offset %u", len, offset);
-	if (!ipset_data_test(data, IPSET_OPT_IP_TO))
+	if (!ipset_data_test(data, IPSET_OPT_IP_TO)) {
+		size = snprintf(buf + offset, len, "%s", quoted);
+		SNPRINTF_FAILURE(size, len, offset);
 		return offset;
+	}
 
 	size = snprintf(buf + offset, len, "%s", IPSET_RANGE_SEPARATOR);
 	SNPRINTF_FAILURE(size, len, offset);
@@ -304,6 +311,10 @@ ipset_print_ip(char *buf, unsigned int len,
 		return -1;
 
 	SNPRINTF_FAILURE(size, len, offset);
+
+	size = snprintf(buf + offset, len, "%s", quoted);
+	SNPRINTF_FAILURE(size, len, offset);
+
 	return offset;
 }
 

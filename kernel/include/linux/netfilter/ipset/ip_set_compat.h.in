@@ -69,6 +69,8 @@
 #@HAVE_NFNL_CALLBACK_TYPE@ HAVE_NFNL_CALLBACK_TYPE
 #@HAVE_EAGAIN_IN_NFNETLINK_UNICAST@ HAVE_EAGAIN_IN_NFNETLINK_UNICAST
 #@HAVE_NLMSG_UNICAST@ HAVE_NLMSG_UNICAST
+#@HAVE_NF_BRIDGE_GET_PYSINDEV_NET@ HAVE_NF_BRIDGE_GET_PYSINDEV_NET
+#@HAVE_RCUPDATE_WAIT_H@ HAVE_RCUPDATE_WAIT_H
 
 #ifdef HAVE_EXPORT_SYMBOL_GPL_IN_MODULE_H
 #include <linux/module.h>
@@ -167,6 +169,7 @@ do {				\
 #endif
 #endif
 
+#ifndef HAVE_RCUPDATE_WAIT_H
 #ifndef HAVE_COND_RESCHED_RCU
 static inline void cond_resched_rcu(void)
 {
@@ -176,6 +179,7 @@ static inline void cond_resched_rcu(void)
 	rcu_read_lock();
 #endif
 }
+#endif
 #endif
 
 #if defined(CONFIG_NETFILTER_NETLINK) || defined(CONFIG_NETFILTER_NETLINK_MODULE)

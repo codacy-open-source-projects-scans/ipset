@@ -211,4 +211,6 @@ skip which sendip >/dev/null
 0 ipset f
 # Counters and timeout: destroy sets
 0 ipset x
+# Use namespace and test list:set with comments (takes longer)
+0 ./setlist_ns.sh
 # eof

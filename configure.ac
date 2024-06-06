@@ -1,9 +1,9 @@
 dnl Boilerplate
-AC_INIT([ipset], [7.21], [kadlec@netfilter.org])
+AC_INIT([ipset],[7.22],[kadlec@netfilter.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign subdir-objects tar-pax no-dist-gzip dist-xz])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
@@ -182,7 +182,7 @@ dnl Checks for programs
 
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_PROG_LIBTOOL
+LT_INIT
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
@@ -888,6 +888,25 @@ if test -f $ksourcedir/include/linux/gfp.h && \
 else
 	AC_MSG_RESULT(no)
 	AC_SUBST(HAVE_GFP_KERNEL_ACCOUNT, undef)
+fi
+
+AC_MSG_CHECKING([kernel source for second arg of nf_bridge_get_physindev() in netfilter_bridge.h])
+if test -f $ksourcedir/include/linux/netfilter_bridge.h && \
+   $GREP 'nf_bridge_get_physindev' $ksourcedir/include/linux/netfilter_bridge.h | $GREP -q ' struct net '; then
+	AC_MSG_RESULT(yes)
+	AC_SUBST(HAVE_NF_BRIDGE_GET_PYSINDEV_NET, define)
+else
+	AC_MSG_RESULT(no)
+	AC_SUBST(HAVE_NF_BRIDGE_GET_PYSINDEV_NET, undef)
+fi
+
+AC_MSG_CHECKING([kernel source for rcupdate_wait.h])
+if test -f $ksourcedir/include/linux/rcupdate_wait.h; then
+	AC_MSG_RESULT(yes)
+	AC_SUBST(HAVE_RCUPDATE_WAIT_H, define)
+else
+	AC_MSG_RESULT(no)
+	AC_SUBST(HAVE_RCUPDATE_WAIT_H, undef)
 fi
 
 AC_MSG_CHECKING([kernel source for struct net_generic])

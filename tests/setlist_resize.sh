@@ -1,19 +1,26 @@
 #!/bin/sh
 
+set -e
 # set -x
+# exec > setlist.res
+# exec 2>&1
 
 ipset=${IPSET_BIN:-../src/ipset}
 
 loop=8
 
-for x in ip_set_list_set ip_set_hash_netiface ip_set_hash_ipportnet \
-	 ip_set_hash_netport ip_set_hash_net ip_set_hash_ipportip \
-	 ip_set_hash_ipport ip_set_hash_ip ip_set_hash_netnet \
-	 ip_set_hash_netportnet ip_set_hash_ipmark ip_set_hash_mac \
-	 ip_set_bitmap_port ip_set_bitmap_ipmac \
-	 ip_set_bitmap_ip xt_set ip_set; do
-    rmmod $x >/dev/null 2>&1
+n=0
+while [ $n -le 9 ]; do
+    egrep '^(ip_set_|xt_set)' /proc/modules | while read x y; do
+    	rmmod $x >/dev/null 2>&1
+    done
+    if [ "`egrep '^(ip_set_|xt_set)' /proc/modules`" ]; then
+    	sleep 1s
+    else
+    	n=10
+    fi
 done
+rmmod ip_set >/dev/null 2>&1
 
 create() {
     n=$1
@@ -30,7 +37,23 @@ for x in `seq 1 $loop`; do
     wait
     test `$ipset l -n | wc -l` -eq 1024 || exit 1
     $ipset x
-    test `lsmod|grep -w ^ip_set_hash_ip | awk '{print $3}'` -eq 0 || exit 1
+    # Wait for destroy to be finished and reference counts releases
+    n=0
+    ref=0
+    while [ $n -le 9 ]; do
+    	ref=`lsmod|grep -w ^ip_set_hash_ip | awk '{print $3}'`
+    	if [ $ref -eq 0 ]; then
+    	    n=10;
+    	else
+    	    sleep 1s
+    	    n=$((n+1))
+    	fi
+    done
+    if [ "$ref" -ne 0 ]; then
+    	lsmod
+    	echo $ref
+    fi
+    test "$ref" -eq 0 || exit 1
     rmmod ip_set_hash_ip >/dev/null 2>&1
     rmmod ip_set >/dev/null 2>&1
 done
