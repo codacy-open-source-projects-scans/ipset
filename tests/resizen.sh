@@ -25,80 +25,79 @@ case "$2" in
     	$ipset n test hash:ip,port,net $1 hashsize 64
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y,1023,$ip2/$net nomatch
+    	    	echo "a test $ip$x$sep$y,1023,$ip2/$net nomatch"
     	    done
-    	done
+    	done | $ipset restore
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset t test $ip$x$sep$y,1023,$ip2/$net nomatch 2>/dev/null
+    	    	echo "t test $ip$x$sep$y,1023,$ip2/$net nomatch"
     	    done
-    	done
+    	done | $ipset restore 2>/dev/null
     	;;
     netportnet)
     	$ipset n test hash:net,port,net $1 hashsize 64
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y,1023,$ip2/$net nomatch
+    	    	echo "a test $ip$x$sep$y,1023,$ip2/$net nomatch"
     	    done
-    	done
+    	done | $ipset restore
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset t test $ip$x$sep$y,1023,$ip2/$net nomatch 2>/dev/null
+    	    	echo "t test $ip$x$sep$y,1023,$ip2/$net nomatch"
     	    done
-    	done
+    	done | $ipset restore 2>/dev/null
     	;;
     net)
     	$ipset n test hash:net $1 hashsize 64
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y/$net nomatch
+    	    	echo "a test $ip$x$sep$y/$net nomatch"
     	    done
-    	done
+    	done | $ipset restore
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset t test $ip$x$sep$y/$net nomatch 2>/dev/null
+    	    	echo "t test $ip$x$sep$y/$net nomatch"
     	    done
-    	done
+    	done | $ipset restore 2>/dev/null
     	;;
     netnet)
 	$ipset n test hash:net,net $1 hashsize 64
 	for x in `seq 0 16`; do
 	    for y in `seq 0 255`; do
-		$ipset a test $ip$x$sep$y/$net,$ip$y$sep$x/$net nomatch
+		echo "a test $ip$x$sep$y/$net,$ip$y$sep$x/$net nomatch"
 	    done
-	done
+	done | $ipset restore
 	for x in `seq 0 16`; do
 	    for y in `seq 0 255`; do
-		$ipset t test $ip$x$sep$y/$net,$ip$y$sep$x/$net nomatch \
-		2>/dev/null
+		echo "t test $ip$x$sep$y/$net,$ip$y$sep$x/$net nomatch"
 	    done
-	done
+	done | $ipset restore 2>/dev/null
 	;;
     netport)
     	$ipset n test hash:net,port $1 hashsize 64
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y/$net,1023 nomatch
+    	    	echo "a test $ip$x$sep$y/$net,1023 nomatch"
     	    done
-    	done
+    	done | $ipset restore
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset t test $ip$x$sep$y/$net,1023 nomatch 2>/dev/null
+    	    	echo "t test $ip$x$sep$y/$net,1023 nomatch"
     	    done
-    	done
+    	done | $ipset restore 2>/dev/null
     	;;
     netiface)
     	$ipset n test hash:net,iface $1 hashsize 64
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y/$net,eth0 nomatch
+    	    	echo "a test $ip$x$sep$y/$net,eth0 nomatch"
     	    done
-    	done
+    	done | $ipset restore
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset t test $ip$x$sep$y/$net,eth0 nomatch 2>/dev/null
+    	    	echo "t test $ip$x$sep$y/$net,eth0 nomatch"
     	    done
-    	done
+    	done | $ipset restore 2>/dev/null
     	;;
 esac
 $ipset x

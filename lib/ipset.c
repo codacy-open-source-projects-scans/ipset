@@ -343,9 +343,9 @@ ipset_shift_argv(int *argc, char *argv[], int from)
 
 	assert(*argc >= from + 1);
 
-	for (i = from + 1; i <= *argc; i++)
+	for (i = from + 1; i < *argc; i++)
 		argv[i-1] = argv[i];
-	(*argc)--;
+	argv[--(*argc)] = NULL;
 	return;
 }
 

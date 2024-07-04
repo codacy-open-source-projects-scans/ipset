@@ -25,65 +25,65 @@ case "$2" in
     	$ipset n test hash:ip $1 hashsize 64 comment
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y comment "text $ip$x$sep$y"
+    	    	echo "a test $ip$x$sep$y comment \"text $ip$x$sep$y\""
     	    done
-    	done
+    	done | $ipset restore
     	;;
     ipport)
     	$ipset n test hash:ip,port $1 hashsize 64 comment
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y,1023 "text $ip$x$sep$y,1023"
+    	    	echo "a test $ip$x$sep$y,1023 \"text $ip$x$sep$y,1023\""
     	    done
-    	done
+    	done | $ipset restore
     	;;
     ipportip)
     	$ipset n test hash:ip,port,ip $1 hashsize 64 comment
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y,1023,$ip2 comment "text $ip$x$sep$y,1023,$ip2"
+    	    	echo "a test $ip$x$sep$y,1023,$ip2 comment \"text $ip$x$sep$y,1023,$ip2\""
     	    done
-    	done
+    	done | $ipset restore
     	;;
     ipportnet)
     	$ipset n test hash:ip,port,net $1 hashsize 64 comment
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y,1023,$ip2/$net comment "text $ip$x$sep$y,1023,$ip2/$net"
+    	    	echo "a test $ip$x$sep$y,1023,$ip2/$net comment \"text $ip$x$sep$y,1023,$ip2/$net\""
     	    done
-    	done
+    	done | $ipset restore
     	;;
     net)
     	$ipset n test hash:net $1 hashsize 64 comment
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y/$net comment "text $ip$x$sep$y/$net"
+    	    	echo "a test $ip$x$sep$y/$net comment \"text $ip$x$sep$y/$net\""
     	    done
-    	done
+    	done | $ipset restore
     	;;
     netnet)
 	$ipset n test hash:net,net $1 hashsize 64 comment
 	for x in `seq 0 16`; do
 	    for y in `seq 0 255`; do
-		$ipset a test $ip$x$sep$y/$net,$ip$y$sep$x/$net comment "text $ip$x$sep$y/$net,$ip$y$sep$x/$net"
+		echo "a test $ip$x$sep$y/$net,$ip$y$sep$x/$net comment \"text $ip$x$sep$y/$net,$ip$y$sep$x/$net\""
 	    done
-	done
+    	done | $ipset restore
 	;;
     netport)
     	$ipset n test hash:net,port $1 hashsize 64 comment
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y/$net,1023 comment "text $ip$x$sep$y/$net,1023"
+    	    	echo "a test $ip$x$sep$y/$net,1023 comment \"text $ip$x$sep$y/$net,1023\""
     	    done
-    	done
+    	done | $ipset restore
     	;;
     netiface)
     	$ipset n test hash:net,iface $1 hashsize 64 comment
     	for x in `seq 0 16`; do
     	    for y in `seq 0 255`; do
-    	    	$ipset a test $ip$x$sep$y/$net,eth0 comment "text $ip$x$sep$y/$net,eth0"
+    	    	echo "$ipset a test $ip$x$sep$y/$net,eth0 comment \"text $ip$x$sep$y/$net,eth0\""
     	    done
-    	done
+    	done | $ipset restore
     	;;
 esac
 $ipset l test | grep ^$ip | while read x y z; do

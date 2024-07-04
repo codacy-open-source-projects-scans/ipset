@@ -25,9 +25,9 @@ rmmod ip_set >/dev/null 2>&1
 create() {
     n=$1
     while [ $n -le 1024 ]; do
-      $ipset c test$n hash:ip
+      echo "c test$n hash:ip"
     	n=$((n+2))
-    done
+    done | $ipset restore
 }
 
 for x in `seq 1 $loop`; do

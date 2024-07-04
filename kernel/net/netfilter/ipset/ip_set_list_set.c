@@ -432,7 +432,7 @@ list_set_destroy(struct ip_set *set)
 {
 	struct list_set *map = set->data;
 
-	BUG_ON(!list_empty(&map->members));
+	WARN_ON_ONCE(!list_empty(&map->members));
 	kfree(map);
 
 	set->data = NULL;
