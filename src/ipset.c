@@ -15,6 +15,7 @@
 #include <config.h>
 #include <libipset/ipset.h>		/* ipset library */
 #include <libipset/xlate.h>		/* translate to nftables */
+#include <libgen.h>
 
 int
 main(int argc, char *argv[])
