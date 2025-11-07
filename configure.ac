@@ -1,5 +1,5 @@
 dnl Boilerplate
-AC_INIT([ipset],[7.22],[kadlec@netfilter.org])
+AC_INIT([ipset],[7.24],[kadlec@netfilter.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
@@ -401,7 +401,7 @@ fi
 
 AC_MSG_CHECKING([kernel source for id in struct pernet_operations])
 if test -f $ksourcedir/include/net/net_namespace.h && \
-   $AWK '/^struct pernet_operations /,/^}/' $ksourcedir/include/net/net_namespace.h | $GREP -q 'int \*id;'; then
+   $AWK '/^struct pernet_operations /,/^}/' $ksourcedir/include/net/net_namespace.h | $GREP -qE 'int \*( const )?id;'; then
 	AC_MSG_RESULT(yes)
 	AC_SUBST(HAVE_NET_OPS_ID, define)
 else
@@ -907,6 +907,16 @@ if test -f $ksourcedir/include/linux/rcupdate_wait.h; then
 else
 	AC_MSG_RESULT(no)
 	AC_SUBST(HAVE_RCUPDATE_WAIT_H, undef)
+fi
+
+AC_MSG_CHECKING([kernel source for lockdep_set_class in lockdep.h])
+if test -f $ksourcedir/include/linux/lockdep.h && \
+   $GREP -q 'define lockdep_set_class' $ksourcedir/include/linux/lockdep.h; then
+	AC_MSG_RESULT(yes)
+	AC_SUBST(HAVE_LOCKDEP_SET_CLASS, define)
+else
+	AC_MSG_RESULT(no)
+	AC_SUBST(HAVE_LOCKDEP_SET_CLASS, undef)
 fi
 
 AC_MSG_CHECKING([kernel source for struct net_generic])

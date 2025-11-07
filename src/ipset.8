@@ -251,17 +251,13 @@ In the case of host names the DNS resolver is called internally
 by \fBipset\fR but if it returns multiple IP addresses, only the
 first one is used.
 
-The \fBbitmap\fR and \fBlist\fR types use a fixed sized storage. The \fBhash\fR
-types use a hash to store the elements. In order to avoid clashes in the hash,
+The \fBbitmap\fR and \fBlist\fR types use a fixed sized storage.
+
+The \fBhash\fR types use a hash to store the elements. In order to avoid clashes in the hash,
 a limited number of chaining, and if that is exhausted, the doubling of the hash size
-is performed when adding entries by the
-\fBipset\fR
-command. When entries added by the
-\fBSET\fR
-target of
-\fBiptables/ip6tables\fR,
-then the hash size is fixed and the set won't be duplicated, even if the new
-entry cannot be added to the set.
+is performed when adding entries by the \fBipset\fR command. When entries added by the
+\fBSET\fR target of \fBiptables/ip6tables\fR, then the hash size is fixed and the
+hash won't be duplicated, even if the new entry cannot be added to the set.
 .SH "GENERIC CREATE AND ADD OPTIONS"
 .SS timeout
 All set types supports the optional \fBtimeout\fR
@@ -335,28 +331,43 @@ ipset create foo hash:ip skbinfo
 .IP
 ipset add foo 192.168.0.1 skbmark 0x1111/0xff00ffff skbprio 1:10 skbqueue 10
 .PP
-.SS hashsize
-This parameter is valid for the \fBcreate\fR command of all \fBhash\fR type sets.
-It defines the initial hash size for the set, default is 1024. The hash size must be a power
-of two, the kernel automatically rounds up non power of two hash sizes to the first
-correct value.
-Example:
-.IP
-ipset create test hash:ip hashsize 1536
-.PP
 .SS maxelem
 This parameter is valid for the \fBcreate\fR command of all \fBhash\fR type sets.
 It defines the maximal number of elements which can be stored in the set, default 65536.
+It is the hard limit for the possible elements in a hash type of set. If
+the set is full (i.e. it contains \fBmaxelem\fR number of elements), new
+elements cannot be added neither by the \fBipset\fR command nor by the
+\fBSET\fR target.
 Example:
 .IP
 ipset create test hash:ip maxelem 2048
 .PP
+.SS hashsize
+This parameter is valid for the \fBcreate\fR command of all \fBhash\fR type sets.
+It defines the initial hash size for the set, default is 1024. The hash size must be a power
+of two, the kernel automatically rounds up non power of two hash sizes to the first
+correct value. If you intend to use a set so that new elements are added by the \fBipset\fR
+command only, then you can start with a default/small \fBhashsize\fR value and the hash
+will grow automatically as you add new entries until \fBmaxelem\fR values
+are added. If you want to use a set so that new
+elements are added by the \fBSET\fR target, then choose the maximal \fBhashsize\fR
+value with respect of the \fBbucketsize\fR parameter so that number of planned elements
+will fit into the hash.
+.IP
+hashsize == maxelem / bucketsize
+.PP
+is the smallest possible approximation but a larger hash size is better to
+make sure all elements can really be stored in the set. Example:
+.IP
+ipset create test hash:ip hashsize 1536
+.PP
 .SS bucketsize
 This parameter is valid for the \fBcreate\fR command of all \fBhash\fR type sets.
 It specifies the maximal number of elements which can be stored in a hash
-bucket. Possible values are any even number between 2-14 and the default is
-14. Setting the value lower forces ipset to create larger hashes which
-consumes more memory but gives more speed at matching in the set.
+bucket. Possible values are any even number between 2-12 and the default is
+12. Setting the value lower forces ipset to create larger hashes when adding
+new elements to a set by the \fBipset\fR command which consumes more memory
+but gives more speed at matching in the set.
 Example:
 .IP
 ipset create test hash:ip bucketsize 2
@@ -925,7 +936,7 @@ The \fBhash:ip,mark\fR set type uses a hash to store IP address and packet mark 
 Optional \fBcreate\fR options:
 .TP
 \fBmarkmask\fR \fIvalue\fR
-Allows you to set bits you are interested in the packet mark. This values is then used to perform bitwise AND operation for every mark added.
+Allows you to set bits you are interested in the packet mark. This value is then used to perform bitwise AND operation for every mark added.
 markmask can be any value between 1 and 4294967295, by default all 32 bits are set.
 .PP
 The

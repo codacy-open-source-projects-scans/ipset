@@ -1,3 +1,17 @@
+7.24
+  - netfilter: ipset: fix region locking in hash types
+  - Handle "netfilter: ipset: Fix for recursive locking warning"
+    patch for backward compatibility
+  - netfilter: ipset: Fix for recursive locking warning
+
+7.23
+  - netfilter: ipset: Hold module reference while requesting a module
+    (Phil Sutter)
+  - netfilter: ipset: add missing range check in bitmap_ip_uadt
+    (Jeongjun Park)
+  - netfilter: ipset: Fix suspicious rcu_dereference_protected()
+  - Replace BUG_ON() with WARN_ON_ONCE() according to usage policy.
+
 7.22
   - netfilter: ipset: Fix race between namespace cleanup and gc
     in the list:set type

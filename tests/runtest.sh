@@ -76,6 +76,7 @@ fi
 # Make sure the scripts are executable
 chmod a+x check_* *.sh
 
+failcount=0
 for types in $tests; do
     $ipset -X test >/dev/null 2>&1
     if [ -f $types ]; then
@@ -116,7 +117,8 @@ for types in $tests; do
 		echo "FAILED"
 		echo "Failed test: $cmd"
 		cat .foo.err
-		exit 1
+		let "failcount++"
+		break
 	fi
 	# sleep 1
     done < $filename
@@ -136,5 +138,9 @@ for x in $tests; do
 done
 rmmod ip_set >/dev/null 2>&1
 rm -f .foo*
-echo "All tests are passed"
-
+if [ "$failcount" -eq 0 ]; then
+	echo "All tests are passed"
+else
+	echo "$failcount tests have failed"
+	exit 1
+fi

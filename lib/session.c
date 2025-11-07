@@ -897,7 +897,7 @@ list_adt(struct ipset_session *session, struct nlattr *nla[])
 		break;
 	case IPSET_LIST_JSON:
 		/* print separator if a member for this set was printed before */
-		if (STREQ(ipset_data_setname(data), last_setname))
+		if (!session->sort && STREQ(ipset_data_setname(data), last_setname))
 			safe_snprintf(session, ",");
 		strcpy(last_setname, ipset_data_setname(data));
 		safe_snprintf(session, "\n      {\n        \"elem\" : \"");
@@ -944,9 +944,14 @@ list_adt(struct ipset_session *session, struct nlattr *nla[])
 				safe_snprintf(session,
 					      ",\n        \"%s\" : true", arg->name[0]);
 				break;
+			} else if (arg->opt == IPSET_OPT_ADT_COMMENT) {
+				safe_snprintf(session, ",\n        \"%s\" : ", arg->name[0]);
+				safe_dprintf(session, arg->print, arg->opt);
+				break;
 			}
-			safe_snprintf(session, ",\n        \"%s\" : ", arg->name[0]);
+			safe_snprintf(session, ",\n        \"%s\" : \"", arg->name[0]);
 			safe_dprintf(session, arg->print, arg->opt);
+			safe_snprintf(session, "\"");
 			break;
 		default:
 			break;
@@ -1030,6 +1035,7 @@ list_create(struct ipset_session *session, struct nlattr *nla[])
 			      type->name, type->revision);
 		break;
 	case IPSET_LIST_JSON:
+		ipset_envopt_set(session, IPSET_ENV_QUOTED);
 		if (!firstipset)
 			safe_snprintf(session, ",\n");
 		firstipset = false;
@@ -1142,8 +1148,9 @@ list_create(struct ipset_session *session, struct nlattr *nla[])
 		safe_snprintf(session, "\n");
 		safe_snprintf(session,
 			session->envopts & IPSET_ENV_LIST_HEADER ?
-			"    },\n" :
+			"    }\n" :
 			"    },\n    \"members\" : [");
+		ipset_envopt_unset(session, IPSET_ENV_QUOTED);
 		break;
 	default:
 		break;
@@ -1247,7 +1254,8 @@ print_set_done(struct ipset_session *session, bool callback_done)
 	D("called for %s", session->saved_setname[0] == '\0'
 		? "NONE" : session->saved_setname);
 	if (session->sort) {
-		struct ipset_sorted *pos;
+		struct ipset_sorted *pos, *next;
+		const char *comma = session->mode == IPSET_LIST_JSON ? "," : "";
 		int ret;
 
 		/* Print set header */
@@ -1259,9 +1267,15 @@ print_set_done(struct ipset_session *session, bool callback_done)
 		list_sort(session, &session->sorted, bystrcmp);
 
 		list_for_each_entry(pos, &session->sorted, list) {
+			/* In JSON output we must not emit the last comma */
+			if (session->mode == IPSET_LIST_JSON) {
+				next = list_entry(pos->list.next, typeof(*pos), list);
+				if (&next->list == &session->sorted)
+					comma = "";
+			}
 			ret = session->print_outfn(session, session->p,
-					"%s",
-					session->outbuf + pos->offset);
+					"%s%s",
+					session->outbuf + pos->offset, comma);
 			if (ret < 0)
 				return MNL_CB_ERROR;
 		}
@@ -1285,7 +1299,7 @@ print_set_done(struct ipset_session *session, bool callback_done)
 			break;
 		if (session->envopts & IPSET_ENV_LIST_HEADER) {
 			if (session->saved_setname[0] != '\0')
-				safe_snprintf(session, "    }");
+				safe_snprintf(session, "  }");
 			break;
 		}
 		if (session->saved_setname[0] != '\0')
@@ -2286,8 +2300,6 @@ ipset_cmd(struct ipset_session *session, enum ipset_cmd cmd, uint32_t lineno)
 		if (session->mode == IPSET_LIST_NONE)
 			session->mode = cmd == IPSET_CMD_LIST ?
 				IPSET_LIST_PLAIN : IPSET_LIST_SAVE;
-		/* Reset just in case there are multiple modes in a session */
-		ipset_envopt_unset(session, IPSET_ENV_QUOTED);
 		switch (session->mode) {
 		case IPSET_LIST_XML:
 			/* Start the root element in XML mode */
@@ -2295,7 +2307,6 @@ ipset_cmd(struct ipset_session *session, enum ipset_cmd cmd, uint32_t lineno)
 			break;
 		case IPSET_LIST_JSON:
 			/* Start the root element in json mode */
-			ipset_envopt_set(session, IPSET_ENV_QUOTED);
 			safe_snprintf(session, "[\n");
 			break;
 		default:

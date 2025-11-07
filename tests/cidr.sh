@@ -35,7 +35,7 @@ NETS="0.0.0.0/1
 255.255.255.252/31
 255.255.255.254/32"
 
-ipset="../src/ipset"
+ipset="${IPSET_BIN:-../src/ipset}"
 
 if which netmask >/dev/null 2>&1; then
 	net_first_addr() {
@@ -46,7 +46,7 @@ if which netmask >/dev/null 2>&1; then
 	}
 elif which ipcalc >/dev/null 2>&1; then
 	net_first_addr() {
-		ipcalc $1 | awk '/^Address:/{print $2}'
+		ipcalc $1 | awk '/^(Address|HostMin):/{print $2; exit}'
 	}
 	net_last_addr() {
 		# Netmask tool prints broadcast address as last one, so
@@ -54,6 +54,7 @@ elif which ipcalc >/dev/null 2>&1; then
 		# being recognized as special by ipcalc.
 		ipcalc $1 | awk '/^(Hostroute|HostMax):/{out=$2}
 				 /^Broadcast:/{out=$2}
+				 /^Address:/{out=$2}
 				 END{print out}'
 	}
 else

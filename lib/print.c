@@ -518,10 +518,12 @@ int
 ipset_print_port(char *buf, unsigned int len,
 		 const struct ipset_data *data,
 		 enum ipset_opt opt ASSERT_UNUSED,
-		 uint8_t env UNUSED)
+		 uint8_t env)
 {
 	const uint16_t *port;
 	int size, offset = 0;
+	const char *quoted = ipset_data_test(data, IPSET_OPT_PORT_TO) &&
+			     env & IPSET_ENV_QUOTED ? "\"" : "";
 
 	assert(buf);
 	assert(len > 0);
@@ -533,14 +535,14 @@ ipset_print_port(char *buf, unsigned int len,
 
 	port = ipset_data_get(data, IPSET_OPT_PORT);
 	assert(port);
-	size = snprintf(buf, len, "%u", *port);
+	size = snprintf(buf, len, "%s%u", quoted, *port);
 	SNPRINTF_FAILURE(size, len, offset);
 
 	if (ipset_data_test(data, IPSET_OPT_PORT_TO)) {
 		port = ipset_data_get(data, IPSET_OPT_PORT_TO);
 		size = snprintf(buf + offset, len,
-				"%s%u",
-				IPSET_RANGE_SEPARATOR, *port);
+				"%s%u%s",
+				IPSET_RANGE_SEPARATOR, *port, quoted);
 		SNPRINTF_FAILURE(size, len, offset);
 	}
 

@@ -1,3 +1,25 @@
+7.24
+  - Improve fixing commas in sorted json output
+  - Fix extra quotes around elements in json output
+    (bugzilla #1793, issue 3.)
+  - Fix commas in sorted json output (bugzilla #1793, issue 4)
+  - Fix unquoted port range in json output (bugzilla #1793, issue 1)
+  - Fix extraneous comma in terse list json output (Joachim,
+    bugzilla #1793, issue 2)
+  - bash-completion: restore fix for syntax error (Jeremy Sowden)
+  - Correct typo in man-page (Jeremy Sowden)
+
+7.23
+  - tests: runtest.sh: Keep running, print summary of failed tests
+    (Phil Sutter)
+  - tests: cidr.sh: Fix for quirks in RHEL's ipcalc (Phil Sutter)
+  - tests: cidr.sh: Respect IPSET_BIN env var (Phil Sutter)
+  - ipset: Fix implicit declaration of function basename (Mike Pagano)
+  - tests: Reduce testsuite run-time (Phil Sutter)
+  - lib: ipset: Avoid 'argv' array overstepping (Phil Sutter)
+  - lib: data: Fix for global-buffer-overflow warning by ASAN
+    (Phil Sutter)
+
 7.22
   - ipset: fix json output format for IPSET_OPT_IP (Z. Liu)
   - tests: add namespace test and take into account delayed
