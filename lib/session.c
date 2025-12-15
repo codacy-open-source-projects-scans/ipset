@@ -853,14 +853,13 @@ safe_dprintf(struct ipset_session *session, ipset_printfn fn,
 }
 
 static int
-list_adt(struct ipset_session *session, struct nlattr *nla[])
+list_adt(struct ipset_session *session, struct nlattr *nla[], const bool first_in_list)
 {
 	const struct ipset_data *data = session->data;
 	const struct ipset_type *type;
 	const struct ipset_arg *arg;
 	size_t offset = 0;
 	int i, found = 0;
-	static char last_setname[IPSET_MAXNAMELEN] = "";
 
 	D("enter");
 	/* Check and load type, family */
@@ -897,9 +896,9 @@ list_adt(struct ipset_session *session, struct nlattr *nla[])
 		break;
 	case IPSET_LIST_JSON:
 		/* print separator if a member for this set was printed before */
-		if (!session->sort && STREQ(ipset_data_setname(data), last_setname))
+		if (!session->sort && !first_in_list)
 			safe_snprintf(session, ",");
-		strcpy(last_setname, ipset_data_setname(data));
+
 		safe_snprintf(session, "\n      {\n        \"elem\" : \"");
 		break;
 	case IPSET_LIST_PLAIN:
@@ -998,7 +997,6 @@ list_create(struct ipset_session *session, struct nlattr *nla[])
 	const struct ipset_arg *arg;
 	uint8_t family;
 	int i;
-	static bool firstipset = true;
 
 	for (i = IPSET_ATTR_UNSPEC + 1; i <= IPSET_ATTR_CREATE_MAX; i++)
 		if (nla[i]) {
@@ -1036,9 +1034,8 @@ list_create(struct ipset_session *session, struct nlattr *nla[])
 		break;
 	case IPSET_LIST_JSON:
 		ipset_envopt_set(session, IPSET_ENV_QUOTED);
-		if (!firstipset)
+		if (session->saved_setname[0] != '\0')
 			safe_snprintf(session, ",\n");
-		firstipset = false;
 		safe_snprintf(session,
 			      "  \{\n"
 			      "    \"name\" : \"%s\",\n"
@@ -1320,7 +1317,6 @@ callback_list(struct ipset_session *session, struct nlattr *nla[],
 	      enum ipset_cmd cmd)
 {
 	struct ipset_data *data = session->data;
-	static bool firstipset = true;
 
 	if (setjmp(printf_failure)) {
 		session->saved_setname[0] = '\0';
@@ -1340,14 +1336,14 @@ callback_list(struct ipset_session *session, struct nlattr *nla[],
 			safe_snprintf(session, "<ipset name=\"%s\"/>\n",
 				      ipset_data_setname(data));
 		else if (session->mode == IPSET_LIST_JSON) {
-			if (!firstipset)
+			if (session->saved_setname[0] != '\0')
 				safe_snprintf(session, ",\n");
-			firstipset = false;
 			safe_snprintf(session, "  { \"name\" : \"%s\" }",
 				      ipset_data_setname(data));
 		} else
 			safe_snprintf(session, "%s\n",
 				      ipset_data_setname(data));
+		strcpy(session->saved_setname, ipset_data_setname(data));
 		return call_outfn(session) ? MNL_CB_ERROR : MNL_CB_OK;
 	}
 
@@ -1402,6 +1398,7 @@ callback_list(struct ipset_session *session, struct nlattr *nla[],
 
 	if (nla[IPSET_ATTR_ADT] != NULL) {
 		struct nlattr *tb, *adt[IPSET_ATTR_ADT_MAX+1];
+		bool first_in_list = true;
 
 		mnl_attr_for_each_nested(tb, nla[IPSET_ATTR_ADT]) {
 			D("ADT attributes for %s", ipset_data_setname(data));
@@ -1412,8 +1409,9 @@ callback_list(struct ipset_session *session, struct nlattr *nla[],
 				FAILURE("Broken %s kernel message: "
 					"cannot validate ADT attributes!",
 					cmd2name[cmd]);
-			if (list_adt(session, adt) != MNL_CB_OK)
+			if (list_adt(session, adt, first_in_list) != MNL_CB_OK)
 				return MNL_CB_ERROR;
+			first_in_list = false;
 		}
 		if (session->sort)
 			return MNL_CB_OK;
