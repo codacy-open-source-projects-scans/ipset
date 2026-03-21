@@ -20,7 +20,7 @@ while [ $n -le 9 ]; do
     	n=10
     fi
 done
-rmmod ip_set >/dev/null 2>&1
+rmmod ip_set >/dev/null 2>&1 || :
 
 create() {
     n=$1
