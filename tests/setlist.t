@@ -29,7 +29,7 @@
 # Test foo,after,bar
 1 ipset -T test foo,after,bar
 # Save sets
-0 ipset -S > setlist.t.r
+0 ipset -S > "$IPSET_TMP/setlist.t.r"
 # Delete bar,before,foo
 1 ipset -D test bar,before,foo
 # Delete foo,after,bar
@@ -43,15 +43,15 @@
 # Delete all sets
 0 ipset -X
 # Restore saved sets
-0 ipset -R < setlist.t.r
+0 ipset -R < "$IPSET_TMP/setlist.t.r"
 # List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Check listing
-0 ./diff.sh .foo setlist.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" setlist.t.list0
 # Flush all sets
 0 ipset -F
 # Delete all sets
-0 ipset -X && rm setlist.t.r
+0 ipset -X && rm "$IPSET_TMP/setlist.t.r"
 # Create sets a, b, c to check before/after in all combinations
 0 ipset restore < setlist.t.before
 # Add set b to test set
@@ -61,9 +61,9 @@
 # Add set a before b
 0 ipset add test a before b
 # List test set
-0 ipset list test > .foo
+0 ipset list test > "$IPSET_TMP/.foo"
 # Check listing
-0 ./diff.sh .foo setlist.t.list1
+0 ./diff.sh "$IPSET_TMP/.foo" setlist.t.list1
 # Test a set before b
 0 ipset test test a before b
 # Test c set after b
@@ -71,19 +71,19 @@
 # Delete b set before c
 0 ipset del test b before c
 # List test set
-0 ipset list test > .foo
+0 ipset list test > "$IPSET_TMP/.foo"
 # Check listing
-0 ./diff.sh .foo setlist.t.list2
+0 ./diff.sh "$IPSET_TMP/.foo" setlist.t.list2
 # Delete c set after a
 0 ipset del test c after a
 # List test set
-0 ipset list test > .foo
+0 ipset list test > "$IPSET_TMP/.foo"
 # Check listing
-0 ./diff.sh .foo setlist.t.list3
+0 ./diff.sh "$IPSET_TMP/.foo" setlist.t.list3
 # List all sets
-0 sleep .1s; ipset list > .foo
+0 sleep .1s; ipset list > "$IPSET_TMP/.foo"
 # Check listing
-0 ./diff.sh .foo setlist.t.list4
+0 ./diff.sh "$IPSET_TMP/.foo" setlist.t.list4
 # Flush sets
 0 ipset flush
 # Destroy sets
@@ -174,7 +174,7 @@
 # Counters and timeout: destroy sets
 0 ipset x
 # Counters: require sendip
-skip which sendip >/dev/null
+require_sendip
 # Counters: create set
 0 ipset n a hash:ip counters
 # Counters: create list set

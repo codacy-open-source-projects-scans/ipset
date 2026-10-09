@@ -35,9 +35,9 @@
 # Range: Try to add value after second random value
 0 ipset -A test 2:1:0::1,128,2:2:2::2/12
 # Range: List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Range: Check listing
-0 ./diff.sh .foo hash:ip6,port,net6.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip6,port,net6.t.list0
 # Range: Flush test set
 0 ipset -F test
 # Range: Delete test set

@@ -31,15 +31,15 @@
 # Delete port by number
 0 ipset del test 2.1.0.3,25
 # List set
-0 ipset list test > .foo0 && ./sort.sh .foo0
+0 ipset list test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:ip,port.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port.t.list0
 # Sleep 5s so that elements can time out
 0 sleep 5
 # List set
-0 ipset list test > .foo0 && ./sort.sh .foo0
+0 ipset list test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:ip,port.t.list1
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port.t.list1
 # Flush test set
 0 ipset flush test
 # Add multiple elements in one step
@@ -73,9 +73,9 @@
 # Delete element with sctp
 0 ipset del test 2.0.0.1,sctp:80
 # List set
-0 ipset list test > .foo0 && ./sort.sh .foo0
+0 ipset list test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:ip,port.t.list2
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port.t.list2
 # Delete set
 0 ipset destroy test
 # Create set to add a range
@@ -195,15 +195,15 @@
 # Network: Delete the same network
 0 ipset -D test 200.100.0.12,22
 # Network: List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Network: Check listing
-0 ./diff.sh .foo hash:ip,port.t.list3
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port.t.list3
 # Sleep 5s so that elements can time out
 0 sleep 5
 # Network: List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Network: Check listing
-0 ./diff.sh .foo hash:ip,port.t.list4
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port.t.list4
 # Network: Flush test set
 0 ipset -F test
 # Network: add element with 1s timeout
@@ -241,15 +241,15 @@
 # Network: Delete the same network
 0 ipset -D test 200.100.0.12,22
 # Network: List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Network: Check listing
-0 ./diff.sh .foo hash:ip,port.t.list5
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port.t.list5
 # Sleep 5s so that elements can time out
 0 sleep 5
 # Network: List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Network: Check listing
-0 ./diff.sh .foo hash:ip,port.t.list6
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port.t.list6
 # Network: Flush test set
 0 ipset -F test
 # Network: add element with 1s timeout
@@ -283,9 +283,9 @@
 # Network: Test delete value
 0 ipset -D test 1.168.0.124,22
 # Network: List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Network: Check listing
-0 ./diff.sh .foo hash:ip,port.t.list7
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port.t.list7
 # Network: Delete test set
 0 ipset -X test
 # eof

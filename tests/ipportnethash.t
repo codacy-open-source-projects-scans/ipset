@@ -35,9 +35,9 @@
 # Range: Try to add value after second random value
 0 ipset -A test 2.1.0.1,128,2.2.2.2/12
 # Range: List set
-0 ipset -L test | grep -v Revision: > .foo0 && ./sort.sh .foo0
+0 ipset -L test | grep -v Revision: > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Range: Check listing
-0 diff -u -I 'Size in memory.*' .foo ipportnethash.t.list0
+0 diff -u -I 'Size in memory.*' "$IPSET_TMP/.foo" ipportnethash.t.list0
 # Range: Flush test set
 0 ipset -F test
 # Range: Delete test set
@@ -65,9 +65,9 @@
 # Network: Try to add value after second random value
 0 ipset -A test 2.1.0.0,128,2.2.2.2/12
 # Network: List set
-0 ipset -L test | grep -v Revision: > .foo0 && ./sort.sh .foo0
+0 ipset -L test | grep -v Revision: > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Network: Check listing
-0 diff -u -I 'Size in memory.*' .foo ipportnethash.t.list1
+0 diff -u -I 'Size in memory.*' "$IPSET_TMP/.foo" ipportnethash.t.list1
 # Network: Flush test set
 0 ipset -F test
 # Add a non-matching IP address entry

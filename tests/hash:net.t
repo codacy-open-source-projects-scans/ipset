@@ -33,15 +33,15 @@
 # Try to add IP address
 0 ipset add test 2.0.0.1
 # List set
-0 ipset list test > .foo0 && ./sort.sh .foo0
+0 ipset list test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:net.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" hash:net.t.list0
 # Sleep 5s so that element can time out
 0 sleep 5
 # List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:net.t.list1
+0 ./diff.sh "$IPSET_TMP/.foo" hash:net.t.list1
 # Flush test set
 0 ipset flush test
 # Delete test set
@@ -51,15 +51,19 @@
 # Add networks in range notation
 0 ipset add test 10.2.0.0-10.2.1.12
 # List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:net.t.list2
+0 ./diff.sh "$IPSET_TMP/.foo" hash:net.t.list2
 # Delete test set
 0 ipset destroy test
-# Stress test with range notation
+# Stress test add with range notation
 0 ./netgen.sh | ipset restore
 # List set and check the number of elements
 0 n=`ipset -L test|grep '^10.'|wc -l` && test $n -eq 43520
+# Stress test del with range notation
+0 ./netgen.sh | tail -n +2 | sed 's/^a/d/' | ipset restore
+# List set and check the number of elements
+0 n=`ipset -L test|grep '^10.'|wc -l` && test $n -eq 0
 # Destroy test set
 0 ipset destroy test
 # Verify keeping track cidrs: create set
@@ -127,9 +131,9 @@
 # Add more than 2^31 elements in a range
 0 ipset a test 0.0.0.0-128.0.0.1
 # List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:net.t.list3
+0 ./diff.sh "$IPSET_TMP/.foo" hash:net.t.list3
 # Delete test set
 0 ipset destroy test
 # Counters: create set

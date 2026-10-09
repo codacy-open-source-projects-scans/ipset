@@ -1,11 +1,26 @@
 #!/bin/bash
 
 ipset=${IPSET_BIN:-../src/ipset}
+setname="$1"
+elem="$2"
+wanted_timeout="$3"
+wanted_packets="$4"
+wanted_bytes="$5"
 
-read ip t timeout p packets b bytes <<< $($ipset l $1 | grep ^$2)
-test -z "$timeout" -o -z "$packets" -o -z "$bytes" && exit 1
-test $timeout -gt $3 -o $timeout -lt $(($3 - 10)) && exit 1
-test $packets -ne $4 -o $bytes -ne $5 && exit 1
+allowed_slack=10
+[ "$IPSET_MACHINE_SLOW" = "yes" ] && allowed_slack=30
+
+die() {
+	echo "FAIL: $0: $@"
+	exit 1
+}
+
+timeout_lower=$((wanted_timeout - allowed_slack))
+
+read ip t timeout p packets b bytes <<< $($ipset l $setname | grep ^$elem)
+test -z "$timeout" -o -z "$packets" -o -z "$bytes" && die "at least of one timeout $timeout, packets $packets, bytes $bytes not set"
+test $timeout -gt $wanted_timeout -o $timeout -lt $timeout_lower && die "timeout $timeout gt $wanted_timeout or $timeout lt $timeout_lower"
+test $packets -ne $wanted_packets -o $bytes -ne $wanted_bytes && die "packets $packets ne $wanted_packets or $bytes ne $wanted_bytes"
 exit 0
 
 

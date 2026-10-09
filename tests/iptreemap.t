@@ -49,9 +49,9 @@
 # Test element after upper bound of deleted network
 0 ipset -T test 192.168.68.72
 # List set
-0 ipset -L test | grep -v Revision: > .foo0 && ./sort.sh .foo0
+0 ipset -L test | grep -v Revision: > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 diff -u -I 'Size in memory.*' .foo iptreemap.t.list0
+0 diff -u -I 'Size in memory.*' "$IPSET_TMP/.foo" iptreemap.t.list0
 # Flush test set
 0 ipset -F test
 # Delete test set

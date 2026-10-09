@@ -23,9 +23,9 @@
 # IP: Delete element not added to the set, ignoring error
 0 ipset -! -D test 200.100.0.12
 # IP: List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # IP: Check listing
-0 ./diff.sh .foo iphash.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" iphash.t.list0
 # IP: Flush test set
 0 ipset -F test
 # IP: Delete test set
@@ -33,13 +33,13 @@
 # IP: Restore values so that rehashing is triggered, old format
 0 ipset -R < iphash.t.restore.old
 # IP: Check that all values are restored
-0 (grep add iphash.t.restore | sort > .foo.1) && (ipset -S test | grep add | sort > .foo.2) && cmp .foo.1 .foo.2
+0 (grep add iphash.t.restore | sort > "$IPSET_TMP/.foo.1") && (ipset -S test | grep add | sort > "$IPSET_TMP/.foo.2") && diff -u "$IPSET_TMP/"{.foo.1,.foo.2}
 # IP: Delete test set
 0 ipset -X test
 # IP: Restore values so that rehashing is triggered
 0 ipset -R < iphash.t.restore
 # IP: Check that all values are restored
-0 (grep add iphash.t.restore | sort > .foo.1) && (ipset -S test | grep add | sort > .foo.2) && cmp .foo.1 .foo.2
+0 (grep add iphash.t.restore | sort > "$IPSET_TMP/.foo.1") && (ipset -S test | grep add | sort > "$IPSET_TMP/.foo.2") && diff -u "$IPSET_TMP/"{.foo.1,.foo.2}
 # IP: Flush test set
 0 ipset -F test
 # IP: Delete test set
@@ -53,9 +53,9 @@
 # IP: Add more entries to the second set
 0 tail -n +2 iphash.t.restore | sed -e 's/test/test2/' -e 's/ 10/ 30/' | ipset r
 # IP: Save sets
-0 ipset -s -f .foo0 save && ./ignore.sh .foo0
+0 ipset -s -f "$IPSET_TMP/.foo0" save && ./ignore.sh "$IPSET_TMP/.foo0"
 # IP: Compare sorted save and restore
-0 cmp .foo iphash.t.restore.sorted
+0 diff -u "$IPSET_TMP/.foo" iphash.t.restore.sorted
 # IP: Delete test set
 0 ipset x test
 # IP: Delete test2 set
@@ -63,9 +63,9 @@
 # IP: Restore, which requires multiple messages
 0 ipset restore < iphash.t.large
 # IP: Save the restored set
-0 (ipset save test | sort > .foo.1) && ./ignore.sh .foo.1
+0 (ipset save test | sort > "$IPSET_TMP/.foo.1") && ./ignore.sh "$IPSET_TMP/.foo.1"
 # IP: Compare save and restore
-0 (sort iphash.t.large > .foo.2) && (cmp .foo .foo.2)
+0 (sort iphash.t.large > "$IPSET_TMP/.foo.2") && (diff -u "$IPSET_TMP/.foo" "$IPSET_TMP/.foo.2")
 # IP: Delete all elements, one by one
 0 ipset list test | sed '1,/Members/d' | xargs -n1 ipset del test
 # IP: Delete test set
@@ -95,9 +95,9 @@
 # Network: Delete element not added to the set
 1 ipset -D test 200.100.0.12
 # Network: List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Network: Check listing
-0 ./diff.sh .foo iphash.t.list1
+0 ./diff.sh "$IPSET_TMP/.foo" iphash.t.list1
 # Network: Flush test set
 0 ipset -F test
 # Network: Delete test set

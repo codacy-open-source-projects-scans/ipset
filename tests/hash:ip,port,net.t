@@ -27,9 +27,9 @@
 # Try to add value after second random value
 0 ipset add test 2.1.0.1,128,10.0.0.0/17
 # List set
-0 ipset list test > .foo0 && ./sort.sh .foo0
+0 ipset list test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:ip,port,net.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" hash:ip,port,net.t.list0
 # Sleep 5s so that elements can time out
 0 sleep 5
 # List set

@@ -37,27 +37,27 @@
 # Range: Add a range of elements
 0 ipset -A test 2.0.0.128-2.0.0.131
 # Range: Save set
-0 ipset -S test > ipmap.t.restore
+0 ipset -S test > "$IPSET_TMP/ipmap.t.restore"
 # Range: Destroy set
 0 ipset -X test
 # Range: Restore set and catch error
-1 sed 's/2.0.0.131/222.0.0.131/' < ipmap.t.restore | ipset -R
+1 sed 's/2.0.0.131/222.0.0.131/' < "$IPSET_TMP/ipmap.t.restore" | ipset -R
 # Range: Check returned error line number
-0 num=`grep 'in line' < .foo.err | sed 's/.* in line //' | cut -d : -f 1` && test $num -eq 6
+0 num=`grep 'in line' < "$IPSET_TMP/.foo.err" | sed 's/.* in line //' | cut -d : -f 1` && test $num -eq 6
 # Range: Destroy set
 0 ipset -X test
 # Range: Restore set
-0 ipset -R < ipmap.t.restore && rm ipmap.t.restore
+0 ipset -R < "$IPSET_TMP/ipmap.t.restore" && rm "$IPSET_TMP/ipmap.t.restore"
 # Range: List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Range: Check listing
-0 ./diff.sh .foo ipmap.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" ipmap.t.list0
 # Range: Delete a range of elements
 0 ipset -! -D test 2.0.0.128-2.0.0.132
 # Range: List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Range: Check listing
-0 ./diff.sh .foo ipmap.t.list1
+0 ./diff.sh "$IPSET_TMP/.foo" ipmap.t.list1
 # Range: Flush test set
 0 ipset -F test
 # Range: Delete test set
@@ -91,9 +91,9 @@
 # Network: Delete the same element
 0 ipset -D test 2.0.0.128
 # Network: List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Network: Check listing
-0 ./diff.sh .foo ipmap.t.list2
+0 ./diff.sh "$IPSET_TMP/.foo" ipmap.t.list2
 # Network: Flush test set
 0 ipset -F test
 # Network: Delete test set
@@ -127,9 +127,9 @@
 # Subnets: Add a subnet of subnets
 0 ipset -A test 10.8.0.0/16
 # Subnets: List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Subnets: Check listing
-0 ./diff.sh .foo ipmap.t.list3
+0 ./diff.sh "$IPSET_TMP/.foo" ipmap.t.list3
 # Subnets: FLush test set
 0 ipset -F test
 # Subnets: Delete test set
@@ -153,9 +153,9 @@
 # Full: Delete same element
 0 ipset -D test 0.1.0.0
 # Full: List set
-0 ipset -L test > .foo
+0 ipset -L test > "$IPSET_TMP/.foo"
 # Full: Check listing
-0 ./diff.sh .foo ipmap.t.list4
+0 ./diff.sh "$IPSET_TMP/.foo" ipmap.t.list4
 # Full: Delete test set
 0 ipset -X test
 # eof

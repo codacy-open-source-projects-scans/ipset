@@ -7,8 +7,8 @@ for x in `seq 0 255`; do
         echo "a test 10.10.$x.$y"
     done
 done | ipset r
-ipset -t list > .foo
-diff .foo big_sort.terse
-ipset -s save > .foo
-diff .foo big_sort.saved
+ipset -t list > "$IPSET_TMP/.foo"
+diff "$IPSET_TMP/.foo" big_sort.terse
+ipset -s save > "$IPSET_TMP/.foo"
+diff "$IPSET_TMP/.foo" big_sort.saved
 ipset x test

@@ -5,8 +5,8 @@ set -e
 
 # arguments: ipaddr proto port setname ...
 
-test -f .loglines || exit 1
-loglines=$(<.loglines)
+test -f "$IPSET_TMP/.loglines" || exit 1
+loglines=$(<"$IPSET_TMP/.loglines")
 if [ $loglines -ne 0 ]; then
     loglines=$((loglines - 1))
 fi
@@ -44,7 +44,12 @@ port=$1; shift
 
 set +e
 for setname in $@; do
-	match=`tail -n +$loglines /var/log/kern.log | grep -e "in set $setname: .* SRC=$ipaddr .* PROTO=$proto SPT=$port .*"`
+	if [ -r /var/log/kern.log ]; then
+		match=`tail -n +$loglines /var/log/kern.log | grep -e "in set $setname: .* SRC=$ipaddr .* PROTO=$proto SPT=$port .*"`
+	else
+		match=""
+	fi
+
 	if [ -z "$match" ]; then
 		match=`dmesg | tail -n +$loglines | grep -e "in set $setname: .* SRC=$ipaddr .* PROTO=$proto SPT=$port .*"`
 	fi

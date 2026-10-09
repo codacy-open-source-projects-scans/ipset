@@ -3,6 +3,7 @@
 # set -x
 
 ipset=${IPSET_BIN:-../src/ipset}
+tmpdir=""
 
 tests="init"
 tests="$tests ipmap bitmap:ip"
@@ -18,9 +19,84 @@ tests="$tests hash:net,iface.t hash:mac.t"
 tests="$tests comment setlist restore"
 # tests="$tests iptree iptreemap"
 
+if [ "$IPSET_UNSHARED" = "" ]; then
+	# Re-execute in new network namespace
+	export IPSET_UNSHARED="yes"
+	export IPSET_BIN="$ipset"
+	sysctl net.netfilter.nf_log_all_netns=1
+	exec unshare -n -- "$0" "$@"
+fi
+
+sysctl net.ipv4.conf.all.rp_filter=0
+
+cleanup() {
+	rm -f "$tmpdir"/.foo*
+	rm -f "$tmpdir/.loglines"
+	rmdir "$tmpdir"
+	ip link del eth0
+}
+trap cleanup EXIT
+
+kmemleak_found=0
+test -f /sys/kernel/debug/kmemleak && kmemleak_found=$(grep "unreferenced object" /sys/kernel/debug/kmemleak | wc -l)
+
+check_kmemleak_force()
+{
+	echo scan > /sys/kernel/debug/kmemleak
+
+	local lines=$(grep "unreferenced object" /sys/kernel/debug/kmemleak | wc -l)
+	if [ $lines -ne $kmemleak_found ];then
+		echo "FAILED"
+		cat /sys/kernel/debug/kmemleak
+		failcount=$((failcount+1))
+	else
+		echo "OK"
+	fi
+}
+
+check_failcount() {
+	local ret=0
+
+	if [ -f /sys/kernel/debug/kmemleak ]; then
+		echo -n  "Waiting 30 seconds, then doing kmemleak scan "
+		sleep 30
+		check_kmemleak_force
+	fi
+
+	rmmod ip_set >/dev/null 2>&1
+
+	if [ "$failcount" -eq 0 ]; then
+		echo "All tests are passed"
+	else
+		echo "$failcount tests have failed"
+		ret=1
+	fi
+
+	exit $ret
+}
+
+tmpdir=$(mktemp -t -d ip-set-XXXXXXXX)
+
+ip link set lo up
+
+# test cases send and expect packets on eth0.
+ip link add dev eth0 type dummy
+ip link set eth0 up
+ip addr add 10.255.255.64/8 dev eth0
+sysctl net.ipv4.conf.eth0.rp_filter=0
+
 # For correct sorting:
 LC_ALL=C
 export LC_ALL
+export IPSET_TMP="$tmpdir"
+
+HAVE_SENDIP=n
+[ -n "`which sendip`" ] && HAVE_SENDIP=y
+if [ $HAVE_SENDIP = "n" ]; then
+	if python -c 'from scapy.all import ( IPv6 )'; then
+		HAVE_SENDIP=y
+	fi
+fi
 
 add_tests() {
 	# inet|inet6 network
@@ -43,7 +119,7 @@ add_tests() {
 	fi
 	if [ `$cmd -t filter | wc -l` -eq 7 -a \
 	     `$cmd -t filter | grep ACCEPT | wc -l` -eq 3 ]; then
-	     	if [ -z "`which sendip`" ]; then
+		if [ "$HAVE_SENDIP" = "n" ]; then
 	     		echo "sendip utility is missig: skipping $1 match and target tests"
 	     		return
 	     	elif [ -n "`which ss`" ]; then
@@ -74,7 +150,9 @@ else
 fi
 
 # Make sure the scripts are executable
-chmod a+x check_* *.sh
+for f in check_* *.sh; do
+	test -x "$f" || chmod a+x "$f"
+done
 
 failcount=0
 for types in $tests; do
@@ -101,11 +179,19 @@ for types in $tests; do
 	    	fi
 	    	continue
 	    	;;
+	    require_sendip)
+		if [ "$HAVE_SENDIP" = "y" ]; then
+			continue
+		else
+			echo "Skipping, sendip (scapy) not available"
+			break
+		fi
+		;;
 	    *)
 		;;
 	esac
 	echo -ne "$types: $what: "
-	cmd=`echo $cmd | sed "s|ipset|$ipset 2>.foo.err|"`
+	cmd=`echo $cmd | sed "s|ipset|$ipset 2>"$tmpdir"/.foo.err|"`
 	# For the case: ipset list | ... | xargs -n1 ipset
 	cmd=`echo $cmd | sed "s|ipset|$ipset|2g"`
 	eval $cmd
@@ -116,7 +202,7 @@ for types in $tests; do
 	else
 		echo "FAILED"
 		echo "Failed test: $cmd"
-		cat .foo.err
+		cat "$tmpdir"/.foo.err
 		let "failcount++"
 		break
 	fi
@@ -136,11 +222,5 @@ for x in $tests; do
 		;;
 	esac
 done
-rmmod ip_set >/dev/null 2>&1
-rm -f .foo*
-if [ "$failcount" -eq 0 ]; then
-	echo "All tests are passed"
-else
-	echo "$failcount tests have failed"
-	exit 1
-fi
+
+check_failcount

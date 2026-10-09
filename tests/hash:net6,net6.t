@@ -33,15 +33,15 @@
 # Try to add IP address
 0 ipset add test 3:0:0::1,8:0:0::1
 # List set
-0 ipset list test > .foo0 && ./sort.sh .foo0
+0 ipset list test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:net6,net6.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" hash:net6,net6.t.list0
 # Sleep 5s so that element can time out
 0 sleep 5
 # IP: List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # IP: Check listing
-0 ./diff.sh .foo hash:net6,net6.t.list1
+0 ./diff.sh "$IPSET_TMP/.foo" hash:net6,net6.t.list1
 # Flush test set
 0 ipset flush test
 # Add matching IP address entry

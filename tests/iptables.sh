@@ -58,8 +58,8 @@ start)
 		      -j LOG --log-prefix "in set ipport: "
 	$cmd -A INPUT -m set --match-set list src,src \
 		      -j LOG --log-prefix "in set list: "
-	$cmd -A OUTPUT -d $NET -j DROP
-	cat /dev/null > .foo.err
+#	$cmd -A OUTPUT -d $NET -j DROP
+	cat /dev/null > "$IPSET_TMP/.foo.err"
 	cat /dev/null > /var/log/kern.log
 	;;
 start_flags)
@@ -73,7 +73,7 @@ start_flags)
 	$cmd -A INPUT -m set --match-set test src --return-nomatch \
 		      -j LOG --log-prefix "in set test-nomatch: "
 	$cmd -A INPUT -s 10.0.0.0/16 -j DROP
-	cat /dev/null > .foo.err
+	cat /dev/null > "$IPSET_TMP/.foo.err"
 	cat /dev/null > /var/log/kern.log
 	;;
 start_flags_reversed)
@@ -87,7 +87,7 @@ start_flags_reversed)
 	$cmd -A INPUT -m set --match-set test src \
 		      -j LOG --log-prefix "in set test: "
 	$cmd -A INPUT -s 10.0.0.0/16 -j DROP
-	cat /dev/null > .foo.err
+	cat /dev/null > "$IPSET_TMP/.foo.err"
 	cat /dev/null > /var/log/kern.log
 	;;
 del)

@@ -41,15 +41,15 @@
 # Test ICMP by name
 0 ipset test test 2.0.0.255,icmp:host-prohibited
 # List set
-0 ipset list test > .foo0 && ./sort.sh .foo0
+0 ipset list test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Check listing
-0 ./diff.sh .foo hash:net,port.t.list0
+0 ./diff.sh "$IPSET_TMP/.foo" hash:net,port.t.list0
 # Sleep 5s so that element can time out
 0 sleep 5
 # IP: List set
-0 ipset -L test > .foo0 && ./sort.sh .foo0
+0 ipset -L test > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # IP: Check listing
-0 ./diff.sh .foo hash:net,port.t.list1
+0 ./diff.sh "$IPSET_TMP/.foo" hash:net,port.t.list1
 # Flush test set
 0 ipset flush test
 # Add multiple elements in one step

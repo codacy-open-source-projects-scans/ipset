@@ -13,9 +13,9 @@
 # Static: Test value not added to the set
 1 ipset -T test 192.168.68.70
 # Static: List set
-0 ipset -L test | grep -v Revision: > .foo0 && ./sort.sh .foo0
+0 ipset -L test | grep -v Revision: > "$IPSET_TMP/.foo0" && ./sort.sh "$IPSET_TMP/.foo0"
 # Static: Check listing
-0 diff -u -I 'Size in memory.*' .foo iptree.t.list0
+0 diff -u -I 'Size in memory.*' "$IPSET_TMP/.foo" iptree.t.list0
 # Static: Flush test set
 0 ipset -F test
 # Static: Delete test set
